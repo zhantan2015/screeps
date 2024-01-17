@@ -1,0 +1,25 @@
+{
+  "name": "zhantan_pro___21025",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -cw",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@types/lodash": "^4.14.202",
+    "@types/screeps": "^3.3.7",
+    "rollup": "^4.9.5",
+    "rollup-plugin-clear": "^2.0.7",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "source-map": "^0.7.4",
+    "typescript": "^5.3.3"
+  }
+}
