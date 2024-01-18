@@ -1,0 +1,1 @@
+export const ERR_TARGET_UNDEFINED = 1

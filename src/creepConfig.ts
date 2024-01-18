@@ -1,7 +1,7 @@
 export default {
     harvester: {
-        bodys: [WORK, MOVE, CARRY],
-        count: 6,
+        bodys: [WORK, MOVE, MOVE, MOVE, CARRY],
+        count: 4,
         spawnName: "Spawn1"
     },
     superHarvester_left: {
@@ -10,16 +10,16 @@ export default {
         spawnName: "Spawn1",
         memorys: {
             source: "26f20772347f879",
-            container: "964c2e1bee7c73a"
+            target: "38376c4a5e87af4"
         }
     },
     superHarvester_right: {
         bodys: [WORK, WORK, WORK, MOVE, CARRY, CARRY, CARRY, CARRY],
-        count: 0,
+        count: 3,
         spawnName: "Spawn1",
         memorys: {
             source: "71ac0772347ffe6",
-            container: "67172f624ccebf3"
+            target: "80bf6df0e39c583"
         }
     },
     upgrader: {
@@ -28,8 +28,8 @@ export default {
         spawnName: "Spawn1"
     },
     builder: {
-        bodys: [WORK, WORK, WORK, WORK, MOVE, MOVE, CARRY],
-        count: 5,
+        bodys: [WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, CARRY],
+        count: 0,
         spawnName: "Spawn1"
     },
     remover: {
@@ -39,7 +39,7 @@ export default {
     },
     repairer: {
         bodys: [WORK, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY],
-        count: 0,
+        count: 2,
         spawnName: "Spawn1"
     }
 }

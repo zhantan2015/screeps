@@ -1,20 +1,17 @@
-import { build, harveste, superHarveste, upgrade, _remove, repair } from './actions'
+import { build, harveste, upgrade, remove, repair } from './actions'
 import { Incubator } from './incubator'
-
+import { ERR_TARGET_UNDEFINED } from "./constants"
 
 export class Role {
-    protected creep: Creep
+    protected creep: any
     constructor(creep: Creep) {
         this.creep = creep
     }
-    protected isHealthy() {
-        return this.creep.ticksToLive === undefined || this.creep.ticksToLive > 10;
-    }
-    protected sendReborn(role: string) {
-        const creep: any = this.creep
-        const spawn: any = Game.getObjectById(creep.memory.spawnId)
-        const incubator = new Incubator(spawn)
-        incubator.addTask(role)
+    public reborn() {
+        if (this.creep.ticksToLive <= 10) {
+            new Incubator(Game.getObjectById(this.creep.memory.spawnId) as StructureSpawn)
+            this.creep.memory.reborn = true
+        }
     }
 }
 
@@ -23,15 +20,12 @@ export class Harvester extends Role {
         super(creep)
     }
     public work() {
-        const creep: any = this.creep
-        if (!this.isHealthy() && !creep.memory.hasSendReborn) {
-            console.log(creep.memory.hasSendReborn)
-            super.sendReborn('harvester')
-            creep.memory.hasSendReborn = true
-        }
-        if (harveste(creep) && build(creep)) {
-            upgrade(creep)
-        }
+        const sources = this.creep.room.find(FIND_STRUCTURES, { filter: (i: any) => i.structureType == STRUCTURE_CONTAINER })
+            .sort((a: any, b: any) => b.store[RESOURCE_ENERGY] - a.store[RESOURCE_ENERGY])
+        let source = sources.length > 1 ? sources.sort((a: Source, b: Source) => b.energy - a.energy)[0] : sources[0]
+        if (source.store[RESOURCE_ENERGY] <= 100) source = this.creep.room.find(FIND_SOURCES)[0]
+        harveste(this.creep, source)
+        return this
     }
 }
 
@@ -40,15 +34,8 @@ export class SuperHarvesterLeft extends Role {
         super(creep)
     }
     public work() {
-        const creep: any = this.creep
-        if (!this.isHealthy() && !creep.memory.hasSendReborn) {
-            super.sendReborn('superHarvester_left')
-            creep.memory.hasSendReborn = true
-        }
-        if (superHarveste(this.creep)) {
-            creep.say('歇歇...')
-            creep.moveTo(30, 18)
-        }
+        harveste(this.creep, Game.getObjectById(this.creep.memory.source), Game.getObjectById(this.creep.memory.target))
+        return this
     }
 }
 
@@ -57,15 +44,8 @@ export class SuperHarvesterRight extends Role {
         super(creep)
     }
     public work() {
-        const creep: any = this.creep
-        if (!this.isHealthy() && !creep.memory.hasSendReborn) {
-            super.sendReborn('superHarvester_right')
-            creep.memory.hasSendReborn = true
-        }
-        if (superHarveste(this.creep)) {
-            creep.say('歇歇...')
-            creep.moveTo(34, 18)
-        }
+        harveste(this.creep, Game.getObjectById(this.creep.memory.source), Game.getObjectById(this.creep.memory.target))
+        return this
     }
 }
 
@@ -74,12 +54,10 @@ export class Upgrader extends Role {
         super(creep)
     }
     public work() {
-        const creep: any = this.creep
-        if (!this.isHealthy() && !creep.memory.hasSendReborn) {
-            super.sendReborn('harvester')
-            creep.memory.hasSendReborn = true
-        }
-        upgrade(creep)
+        const source = ["97c87bf18bae384", "b1d973930498269", "415577aed772e75"]
+            .map(i => Game.getObjectById(i)).sort((a: any, b: any) => b.store[RESOURCE_ENERGY] - a.store[RESOURCE_ENERGY])[0] as StructureContainer;
+        upgrade(this.creep, source)
+        return this
     }
 }
 
@@ -88,13 +66,15 @@ export class Builder extends Role {
         super(creep)
     }
     public work() {
-        const creep: any = this.creep;
-        if (!this.isHealthy() && !creep.memory.hasSendReborn) {
-            super.sendReborn('harvester')
-            creep.memory.hasSendReborn = true
+        const sources = this.creep.room.find(FIND_STRUCTURES, { filter: (i: any) => i.structureType == STRUCTURE_CONTAINER })
+            .sort((a: any, b: any) => b.store[RESOURCE_ENERGY] - a.store[RESOURCE_ENERGY])
+        let source = sources.sort((a: Source, b: Source) => b.energy - a.energy)[0]
+        if (build(this.creep, source) == ERR_TARGET_UNDEFINED) {
+            const target = this.creep.room.find(FIND_STRUCTURES, { filter: (i: any) => i.ticksToDecay }).sort((a: any, b: any) => a.ticksToDecay - b.ticksToDecay)[0]
+            repair(this.creep, target)
         }
-        if (build(creep))
-            upgrade(creep)
+
+        return this;
     }
 }
 
@@ -103,12 +83,9 @@ export class Repairer extends Role {
         super(creep)
     }
     public work() {
-        const creep: any = this.creep;
-        if (!this.isHealthy() && !creep.memory.hasSendReborn) {
-            super.sendReborn('repairer')
-            creep.memory.hasSendReborn = true
-        }
-        repair(this.creep)
+        const target = this.creep.room.find(FIND_STRUCTURES, { filter: (i: any) => i.ticksToDecay }).sort((a: any, b: any) => a.ticksToDecay - b.ticksToDecay)[0]
+        repair(this.creep, target)
+        return this
     }
 }
 
@@ -117,13 +94,11 @@ export class Remover extends Role {
         super(creep)
     }
     public work() {
-        const creep: any = this.creep;
-        if (!this.isHealthy() && !creep.memory.hasSendReborn) {
-            super.sendReborn('remover')
-            creep.memory.hasSendReborn = true
-        }
-        if (_remove(this.creep)) {
-            harveste(this.creep)
-        }
+        const source: StructureContainer = ["80bf6df0e39c583"]
+            .map(i => Game.getObjectById(i)).sort((a: any, b: any) => b.store[RESOURCE_ENERGY] - a.store[RESOURCE_ENERGY])[0] as StructureContainer;
+        const target = ["97c87bf18bae384", "b1d973930498269", "415577aed772e75"]
+            .map(i => Game.getObjectById(i)).sort((a: any, b: any) => a.store[RESOURCE_ENERGY] - b.store[RESOURCE_ENERGY])[0] as StructureContainer;
+        remove(this.creep, source, target)
+        return this
     }
 }
